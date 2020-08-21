@@ -3,7 +3,7 @@ class cell {
   constructor(xcoord, ycoord) {
     this.x = xcoord
     this.y = ycoord
-    this.state = Math.round(Math.random() - .40) //adjusting the constant being subtracted raises or lowers the amount of initial live cells
+    this.state = Math.round(Math.random() - .35) //adjusting the constant being subtracted raises or lowers the amount of initial live cells
   }
   
   checkNeighbours() {
