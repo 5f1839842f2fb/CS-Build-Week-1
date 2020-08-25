@@ -3,14 +3,24 @@
 </head>
 <body>
   <h1>
-    CONWAYS GAME OF LIFE
+    <a href="https://en.wikipedia.org/wiki/Conway's_Game_of_Life#Rules" target="_blank">
+      CONWAY'S GAME OF LIFE
+    </a>
   </h1>
-  <canvas id="canvas" width="512" height="512"></canvas>
-  <button id="startbutton">
-    start/stop
-  </button>
-  <button id="reset">
-    reset
-  </button>
+  <canvas id="canvas"></canvas>
+  <div id="buttons" style="padding-top: 15px">
+    <button id="startbutton">
+      start/stop
+    </button>
+    <input type="text" id="speed" placeholder="speed in ms"/>
+    <button id="reset">
+      reset
+    </button>
+    <button id="clear">
+      clear
+    </button>
+    <input type="text" id="size" placeholder="height/width in px"/>
+  </div>
+  <h3 id="generation">Generation 0</h4>
 </body>
 <script src="index.js"></script>

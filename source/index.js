@@ -1,34 +1,34 @@
 
-class cell {
+class Cell {
   constructor(xcoord, ycoord) {
     this.x = xcoord
     this.y = ycoord
-    this.state = Math.round(Math.random() - .35) //adjusting the constant being subtracted raises or lowers the amount of initial live cells
+    this.state = Math.round(Math.random() - .35)  //adjusting the constant being subtracted raises or lowers the amount of initial live cells
   }
-  
-  checkNeighbours() {
+
+  checkNeighbours() {  // returns the total number of neighbour cells that are alive
     const neighbours = []
-    neighbours.push(getByCoord(this.x-1, this.y-1)) // nw
-    neighbours.push(getByCoord(this.x, this.y-1)) // n
-    neighbours.push(getByCoord(this.x+1, this.y-1)) // ne
-    neighbours.push(getByCoord(this.x-1, this.y)) // w
-    neighbours.push(getByCoord(this.x+1, this.y)) // e
-    neighbours.push(getByCoord(this.x-1, this.y+1)) // sw
-    neighbours.push(getByCoord(this.x, this.y+1)) // w
-    neighbours.push(getByCoord(this.x+1, this.y+1)) // se
-    
+    neighbours.push(getByCoord(this.x - 1, this.y - 1)) // nw
+    neighbours.push(getByCoord(this.x, this.y - 1)) // n
+    neighbours.push(getByCoord(this.x + 1, this.y - 1)) // ne
+    neighbours.push(getByCoord(this.x - 1, this.y)) // w
+    neighbours.push(getByCoord(this.x + 1, this.y)) // e
+    neighbours.push(getByCoord(this.x - 1, this.y + 1)) // sw
+    neighbours.push(getByCoord(this.x, this.y + 1)) // w
+    neighbours.push(getByCoord(this.x + 1, this.y + 1)) // se
+
     /* console.log(neighbours) */
 
     var total = 0
     neighbours.forEach(element => {
-      if(element !== undefined) {
+      if (element !== undefined) {
         total += element.state
       }
     })
     return total
   }
 
-  liveOrDie() {
+  liveOrDie() {  // changes cell state depending on number of alive neighbour cells
     const n = this.checkNeighbours()
     if (this.state == 1) {
       if (n < 2) {
@@ -47,85 +47,134 @@ class cell {
   }
 }
 
-function getByCoord(x, y) {
-  return grid[x+y*64]
+function toggle(xcoord, ycoord) {  // toggles a cell's state given its coordinates
+  console.log(xcoord, ycoord)
+  cell = getByCoord(xcoord, ycoord)
+  cell.state = !cell.state
+  renderGrid()
 }
 
-const WIDTH = 512
-const LENGTH = 512
+function getByCoord(x, y) {
+  return grid[x + y * (WIDTH / 8)]
+}
+
+var WIDTH = 800
+var LENGTH = 800
 
 var grid = []
-play = false
+var isPlaying = false
+var play = false
+var interval = 1000
+var genNum = 0
 
 const canvas = document.querySelector("canvas"); //set up canvas context
 const context = canvas.getContext("2d");
+canvas.width = WIDTH
+canvas.height = LENGTH
 
 context.fillRect(0, 0, WIDTH, LENGTH) // this and the following set up black grid lines
 
 context.fillStyle = 'white'
-  for (i = 0; i < WIDTH/8; i++) {
-    for (j = 0; j < LENGTH/8; j++) {
-      context.fillRect(i*9, j*9, 8, 8)
-    }
+for (i = 0; i < WIDTH / 8; i++) {
+  for (j = 0; j < LENGTH / 8; j++) {
+    context.fillRect(i * 9, j * 9, 8, 8)
   }
+}
 
 function generate() {
   grid = []
-  for (i = 0; i < WIDTH/8; i++) { // populate the grid array with new cell objects
-    for (j = 0; j < LENGTH/8; j++) {
-      cell1 = new cell(j, i)
-      grid.push(cell1)
+  for (i = 0; i < WIDTH / 8; i++) { // populate the grid array with new cell objects
+    for (j = 0; j < LENGTH / 8; j++) {
+      cell = new Cell(j, i)
+      grid.push(cell)
     }
   }
+  genNum = 0
+  generation.innerText = `Generation: ${genNum}`
   renderGrid()
 }
 
 function renderGrid() {
   grid.forEach(element => {
-    if(element.state == 1) {
+    if (element.state == 1) {
       context.fillStyle = 'black'
     } else {
       context.fillStyle = 'white'
     }
-    context.fillRect(element.x*9, element.y*9, 8, 8)
+    context.fillRect(element.x * 9, element.y * 9, 8, 8)
   })
 }
 
-function iterate() {
+function iterate() {  // makes a new grid state and fills it with the outcomes of each cell calculating whether to live or die, then replaces the old grid with the new one
   newgrid = []
   grid.forEach(element => {
-    cell1 = new cell(element.x, element.y)
-    cell1.state = element.liveOrDie()
-    newgrid.push(cell1)
+    cell = new Cell(element.x, element.y)
+    cell.state = element.liveOrDie()
+    newgrid.push(cell)
   })
   grid = newgrid
+  genNum += 1
+  generation.innerText = `Generation: ${genNum}`
   renderGrid()
 }
 
-function autoplay(play) {
-  play = setInterval(()=> {
-    iterate()
-  }, 1000)
-}
-
-function stopplaying(play) {
-  clearTimeout(play)
-}
-
-function startstop() {
-  if (play == false) {
+function startstop() {  // toggles the auto-stepping
+  if (isPlaying == false) {
+    isPlaying = true
     console.log('playing')
-    play = setInterval(()=> {
+    play = setInterval(() => {
       iterate()
-    }, 1000)
+    }, interval)
   } else {
     console.log('stopping')
     clearTimeout(play)
-    play = false
+    isPlaying = false
   }
 }
+
 window.onload = generate;
-const start = document.getElementById("startbutton")
+
+const start = document.getElementById("startbutton")  // button and input stuff
 start.onclick = startstop
+
 const restart = document.getElementById("reset")
-restart.onclick = generate
+restart.onclick = () => {
+  isPlaying = true
+  startstop()
+  generate()
+}
+
+const clear = document.getElementById("clear")
+clear.onclick = () => {
+  grid.forEach(element => {
+    element.state = 0
+  })
+  renderGrid()
+}
+
+canvas.onclick = e => {
+  toggle(Math.floor(e.offsetX / 9), Math.floor(e.offsetY / 9))
+}
+
+const generation = document.getElementById("generation")
+const speed = document.getElementById("speed")
+speed.onchange = e => {
+  interval = e.target.value
+}
+
+const size = document.getElementById("size")
+size.onchange = e => { 
+  WIDTH = e.target.value
+  LENGTH = e.target.value
+  canvas.width = WIDTH
+  canvas.height = LENGTH
+
+  context.fillRect(0, 0, WIDTH, LENGTH) 
+  context.fillStyle = 'white'
+  for (i = 0; i < WIDTH / 8; i++) {
+    for (j = 0; j < LENGTH / 8; j++) {
+      context.fillRect(i * 9, j * 9, 8, 8)
+    }
+  }
+  generate()
+}
